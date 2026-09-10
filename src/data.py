@@ -69,6 +69,22 @@ def data_fingerprint(path: Path) -> str:
     return h.hexdigest()[:16]
 
 
+def get_dvc_hash(dvc_file: Path | None = None) -> str:
+    """Extract the DVC md5 hash of data/raw."""
+    target = dvc_file or (Path(__file__).resolve().parents[1] / "data" / "raw.dvc")
+    if not target.exists():
+        return "unknown"
+    import yaml
+    try:
+        data = yaml.safe_load(target.read_text())
+        outs = data.get("outs", [])
+        if outs and isinstance(outs, list):
+            return outs[0].get("md5", "unknown")
+    except Exception:
+        pass
+    return "unknown"
+
+
 def split(
     df: pd.DataFrame,
     seed: int,

@@ -45,6 +45,8 @@ reproduce: data image ## THE ONE COMMAND. Grader runs this.
 	  -v "$$PWD/data:/app/data:ro" \
 	  -v "$$PWD/reports:/app/reports" \
 	  -e MLFLOW_TRACKING_URI=sqlite:////app/reports/mlflow.db \
+	  -e GIT_COMMIT=$(TAG) \
+	  -e GIT_PYTHON_REFRESH=quiet \
 	  $(IMAGE):$(TAG) --seed $(SEED) --metrics-out /app/reports/metrics.json
 
 verify: ## Check the produced metric against the README claim

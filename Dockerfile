@@ -30,6 +30,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app
 
 COPY --from=builder /install /usr/local
+RUN mkdir -p /app && chown runner:runner /app
 WORKDIR /app
 COPY --chown=runner:runner src/ ./src/
 COPY --chown=runner:runner cloudlayer/ ./cloudlayer/

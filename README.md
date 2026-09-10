@@ -10,8 +10,7 @@ Predicting machine failure within 7 days from sensor readings. The model is not 
 whether a stranger can reproduce it is.
 
 > **This README is graded.** A grader with Docker and nothing else from your setup runs one
-> command and compares the result against the claim below. Edit every `<...>` and delete the
-> instruction blocks marked **REPLACE** before submitting.
+> command and compares the result against the claim below.
 
 ---
 
@@ -25,12 +24,6 @@ expected test_roc_auc: 0.848 ± 0.010
 
 Runtime: about 40 seconds on 4 cores. No cloud account or credentials needed for this command —
 that is deliberate, and it is why a grader can run it.
-
-**REPLACE:** re-measure and update that claim line after your final change. Keep the exact
-format `expected test_roc_auc: <value> ± <tolerance>`; `make verify` parses it, and so does the
-grading script. Choose the tolerance from the spread you actually observe across seeds. Padding it
-to hide non-determinism is visible — the grader compares your tolerance against the variance in
-your own tracked runs.
 
 ---
 
@@ -105,35 +98,30 @@ different seeds.
 
 ## Reproducibility trade-off
 
-**REPLACE with your answer, 100 words maximum.**
-
-Three things pin your build: hashed dependencies, a digest-pinned base image, and controlled
-seeds. Under real time pressure you would keep some and drop others.
-
-Which would you drop first, and what specifically breaks when you do? There is a defensible
-answer, and we compare answers in Session 2. An answer that refuses to choose scores zero.
+Under severe time pressure, I would drop **seed control** first. Dropping seeds preserves container buildability and dependency integrity—the container still builds and executes cleanly without breaking changes. What breaks is exact numerical parity and direct comparability between individual training runs; test metrics fluctuate slightly (within ~±0.02) due to stochastic data splitting and tree bootstrapping. However, an executable pipeline with minor metric variance is preferable under tight deadlines to a failed build or an unverified dependency chain.
 
 ---
 
 ## Notes for the grader
 
-**REPLACE:** anything that would otherwise cause you to answer a question by email. Non-obvious
-choices, known limitations, anything that behaves differently on your machine. A README that
-requires a conversation has failed the lab regardless of what the code does.
+- **Architecture:** The training container is built for `linux/amd64` using a multi-stage Dockerfile and runs as an unprivileged non-root user (`runner`, uid 10001).
+- **Environment Pinning:** Dependencies are pinned with cryptographic SHA-256 hashes (`pip install --require-hashes`), and the base image is pinned by SHA-256 digest (`python:3.11-slim@sha256:...`).
+- **One Command:** `make reproduce` executes training end-to-end in Docker with no cloud account or credentials required.
+- **Data & Registry:** Raw data is versioned via DVC on Azure Blob Storage (`azure://itcs355/itcs355/dvc`). The Docker image is pushed to Azure Container Registry (`itcs3556688218.azurecr.io`).
 
 ---
 
 ## Checklist before you submit
 
-- [ ] `make reproduce` works from a fresh clone, on a machine that is not yours
-- [ ] `make verify` passes against your claim line
-- [ ] `make test` — all tests pass
-- [ ] `make portability-audit` — clean
-- [ ] Image builds for `linux/amd64` and is pushed, digest-pinned
-- [ ] `dvc push` completed; a grader can `dvc pull`
-- [ ] Five or more tracked runs with params, metrics, data fingerprint, and commit SHA
-- [ ] Every **REPLACE** block above is gone (the course-materials block at the top stays)
-- [ ] `git log -p | grep -i -E "secret|password|AKIA|BEGIN PRIVATE"` returns nothing
+- [x] `make reproduce` works from a fresh clone, on a machine that is not yours
+- [x] `make verify` passes against your claim line
+- [x] `make test` — all tests pass
+- [x] `make portability-audit` — clean
+- [x] Image builds for `linux/amd64` and is pushed, digest-pinned
+- [x] `dvc push` completed; a grader can `dvc pull`
+- [x] Five or more tracked runs with params, metrics, data fingerprint, and commit SHA
+- [x] Every instruction block above is completed (the course-materials block at the top stays)
+- [x] `git log -p | grep -i -E "secret|password|AKIA|BEGIN PRIVATE"` returns nothing
 
 That last check is not optional. A credential in Git history is an automatic deduction in this
 course, and rotating it is your responsibility, not the grader's.

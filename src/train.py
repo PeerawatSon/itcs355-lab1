@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -23,6 +24,9 @@ from src import config, data, seeds
 
 
 def git_commit() -> str:
+    env_commit = os.environ.get("GIT_COMMIT")
+    if env_commit:
+        return env_commit.strip()
     try:
         out = subprocess.run(
             ["git", "rev-parse", "HEAD"],
@@ -56,6 +60,14 @@ def main() -> None:
     train_df, val_df, test_df = data.split(df, seed=seed)
 
     mlflow.set_tracking_uri(cfg.mlflow_tracking_uri)
+    exp = mlflow.get_experiment_by_name(args.experiment)
+    if exp is None:
+        cfg.reports_dir.mkdir(parents=True, exist_ok=True)
+        artifact_loc = (cfg.reports_dir / "mlartifacts").as_uri()
+        try:
+            mlflow.create_experiment(args.experiment, artifact_location=artifact_loc)
+        except Exception:
+            pass
     mlflow.set_experiment(args.experiment)
 
     with mlflow.start_run(run_name=args.run_name):
@@ -70,6 +82,7 @@ def main() -> None:
         mlflow.set_tags({
             "git_commit": git_commit(),
             "data_fingerprint": fingerprint,
+            "dvc_hash": data.get_dvc_hash(),
             "split_strategy": "group_by_machine_id",
             "n_train_rows": len(train_df),
             "n_val_rows": len(val_df),
